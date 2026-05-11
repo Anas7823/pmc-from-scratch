@@ -384,4 +384,58 @@ graph LR
 - **Sparse Categorical Cross-Entropy :** Fonction de perte idéale pour la classification multi-classe sans encodage one-hot.
 
 ---
-*Généré par Antigravity - Expert IA*
+---
+
+# ⚡ Rapport d'Expérimentation : Phase 6 - Étude Comparative des Activations
+
+> [!IMPORTANT]
+> **Objectif :** Évaluer l'impact du choix de la fonction d'activation sur la vitesse de convergence et la précision finale. Nous comparons les fonctions classiques (**Sigmoid**, **Tanh**) avec les standards modernes (**ReLU**) et des cas limites (**Linear**, **Softmax**).
+
+---
+
+## 🏗️ Protocole de Test
+Chaque modèle partage la même architecture (784-128-64-10) et le même optimiseur (Adam) pour garantir une comparaison équitable.
+
+```mermaid
+graph LR
+    Input((Input)) --> H1{Activation ?}
+    H1 --> H2{Activation ?}
+    H2 --> Out((Softmax))
+    
+    subgraph Choix
+    direction TB
+    C1[ReLU]
+    C2[Sigmoid]
+    C3[Tanh]
+    C4[Linear]
+    end
+    
+    style H1 fill:#fff4dd,stroke:#d4a017
+    style H2 fill:#fff4dd,stroke:#d4a017
+```
+
+---
+
+## 📊 Tableau Comparatif (MNIST - 10 Époques)
+
+| Activation | Test Accuracy | Convergence (Epoch < 0.1 loss) | Temps Total | Statut |
+| :--- | :--- | :--- | :--- | :--- |
+| **Sigmoid** | **97.52%** | Epoch 5 | 13.8s | ✅ Stable |
+| **Tanh** | **97.43%** | Epoch 3 | 14.1s | ✅ Rapide |
+| **ReLU** | 97.12% | **Epoch 2** | 17.0s | 🚀 Très Rapide |
+| **Linear** | 91.68% | N/A | **13.6s** | ⚠️ Limité |
+| **Softmax** | 82.81% | N/A | 22.0s | ❌ Inadapté |
+
+---
+
+## 📈 Analyse de la Convergence
+
+![Courbe comparative des activations](graph/phase6_activations_curve.png)
+
+### 🧐 Observations Clés :
+1.  **ReLU (Vert) :** C'est le champion de la convergence. Il atteint un niveau de perte très bas dès la 2ème époque, confirmant sa supériorité pour l'entraînement rapide des réseaux profonds.
+2.  **Sigmoid/Tanh (Bleu/Orange) :** Bien que plus anciennes, elles offrent ici d'excellents résultats de précision finale, avec une courbe très lisse.
+3.  **Linear (Gris) :** Sans non-linéarité, le réseau se comporte comme une simple régression. Il plafonne rapidement autour de 91% d'accuracy.
+4.  **Softmax en couche cachée (Rouge) :** Une erreur classique qui illustre l'importance de réserver le Softmax à la couche de sortie pour la distribution de probabilités.
+
+---
