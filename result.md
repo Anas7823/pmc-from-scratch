@@ -116,9 +116,92 @@ graph TD
 
 ## 🖼️ Courbe de Convergence
 
-![Courbe de perte BCE](phase2_loss_curve.png)
+![Courbe de perte BCE](graph/phase2_loss_curve.png)
 
 > [!TIP]
 > **Analyse de la courbe :** On observe une diminution constante de la perte, ce qui confirme que le gradient calculé permet effectivement de descendre vers un minimum local. La pente s'adoucit au fil des itérations, signe que le modèle se rapproche de sa solution optimale pour ce taux d'apprentissage.
+
+---
+
+# 🌀 Rapport d'Expérimentation : Phase 3 - Le Problème du XOR
+
+> [!IMPORTANT]
+> **Objectif :** Résoudre le problème non-linéaire du XOR (eXclusive OR) en utilisant un Réseau de Neurones Multi-Couches (PMC). Cette phase démontre la nécessité d'au moins une couche cachée pour séparer des données non linéairement séparables.
+
+---
+
+## 🏗️ Architecture du Réseau (2-2-1)
+Pour "plier" l'espace et isoler les classes du XOR, nous utilisons une couche cachée de 2 neurones.
+
+```mermaid
+graph LR
+    subgraph Input
+    X1((X1))
+    X2((X2))
+    end
+    
+    subgraph Hidden[Couche Cachée]
+    H1((H1))
+    H2((H2))
+    end
+    
+    subgraph Output[Sortie]
+    Out((Y))
+    end
+    
+    X1 --> H1
+    X1 --> H2
+    X2 --> H1
+    X2 --> H2
+    H1 --> Out
+    H2 --> Out
+    
+    style Hidden fill:#fdf,stroke:#333
+    style Output fill:#bfb,stroke:#333
+```
+
+---
+
+## 🔬 Analyse des Scénarios XOR
+
+````carousel
+### 🟢 Scénario 1 : Normal (Architecture 2-2-1)
+*Le réseau réussit parfaitement à apprendre la logique XOR.*
+
+| Époque | Loss | Accuracy |
+| :--- | :--- | :--- |
+| 0 | 0.6958 | 50.00% |
+| 4000 | 0.0080 | 100.00% |
+| 8000 | **0.0030** | **100.00%** |
+
+![Frontière de décision Normal](graph/phase3_decision_boundary.png)
+
+<!-- slide -->
+
+### 🟡 Scénario 2 : Avec Bruit
+*L'ajout de bruit teste la robustesse du modèle.*
+
+| Époque | Loss | Accuracy |
+| :--- | :--- | :--- |
+| 0 | 0.6958 | 50.00% |
+| 8000 | **0.0030** | **100.00%** |
+
+![Frontière de décision Bruit](graph/phase3_decision_boundary_bruit.png)
+
+<!-- slide -->
+
+### 🔴 Scénario 3 : Échec (1 Neurone Caché)
+*Preuve théorique : 1 seul neurone ne peut pas résoudre le XOR.*
+
+| Époque | Loss | Accuracy |
+| :--- | :--- | :--- |
+| 0 | 0.6967 | 50.00% |
+| 8000 | **0.6931** | **50.00%** |
+
+![Frontière de décision Échec](graph/phase3_decision_boundary_un_neurone_caché.png)
+
+> [!CAUTION]
+> **Pourquoi l'échec ?** Avec un seul neurone caché, le réseau ne peut créer qu'une seule droite de séparation. Le XOR nécessite deux droites pour isoler les points (0,1) et (1,0) des points (0,0) et (1,1).
+````
 
 ---
