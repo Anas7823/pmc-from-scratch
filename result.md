@@ -205,3 +205,183 @@ graph LR
 ````
 
 ---
+---
+
+# 🌀 Rapport d'Expérimentation : Phase 4 - Classification de Spirales Complexes
+
+> [!IMPORTANT]
+> **Objectif :** Relever un défi de classification non-linéaire complexe (spirales entrelacées). Cette phase introduit l'utilisation de **plusieurs couches cachées** et de la fonction d'activation **ReLU** pour capturer des motifs hautement non-linéaires.
+
+---
+
+## 🏗️ Architecture Profonde (2-64-64-1)
+Le réseau utilise une structure pyramidale inversée pour extraire des caractéristiques de plus en plus abstraites.
+
+```mermaid
+graph LR
+    subgraph In[Entrée]
+    X((2 Inputs))
+    end
+    
+    subgraph H1[Couché Cachée 1]
+    L1((64 Neurones<br/>ReLU))
+    end
+    
+    subgraph H2[Couché Cachée 2]
+    L2((64 Neurones<br/>ReLU))
+    end
+    
+    subgraph Out[Sortie]
+    Y((1 Neurone<br/>Sigmoid))
+    end
+    
+    X --> L1 --> L2 --> Y
+    
+    style H1 fill:#fdf,stroke:#333
+    style H2 fill:#fdf,stroke:#333
+    style Out fill:#bfb,stroke:#333
+```
+
+---
+
+## 🔬 Étude Comparative des Scénarios
+
+````carousel
+### 🔵 Scénario 1 : "Deep Learning" (Configuration Optimale)
+*Architecture 2-64-64-1 | Bruit 0.15*
+
+| Époque | Loss | Accuracy |
+| :--- | :--- | :--- |
+| 0 | 0.7224 | 50.00% |
+| 1000 | 0.2838 | 86.75% |
+| 1999 | **0.0102** | **100.00%** |
+
+![Frontière Spirale Optimale](graph/phase4_spirale.png)
+
+> [!TIP]
+> **Succès :** Le réseau a parfaitement "appris" la topologie de la spirale, créant une frontière de décision fluide et précise.
+
+<!-- slide -->
+
+### 🟠 Scénario 2 : Underfitting (Manque de Capacité)
+*Architecture 2-2-2-1 | Bruit 0.15*
+
+| Époque | Loss | Accuracy |
+| :--- | :--- | :--- |
+| 0 | 0.7049 | 50.00% |
+| 1999 | **0.6785** | **57.00%** |
+
+![Frontière Underfitting](graph/phase4_spirale_Underfitting.png)
+
+> [!WARNING]
+> **Diagnostic :** Avec seulement 2 neurones par couche, le réseau est trop "simple" pour comprendre la spirale. Il se contente d'une séparation linéaire grossière.
+
+<!-- slide -->
+
+### 🔴 Scénario 3 : Données Adversarielles (Bruit Élevé)
+*Architecture 2-64-64-1 | Bruit 0.50*
+
+| Époque | Loss | Accuracy |
+| :--- | :--- | :--- |
+| 0 | 0.7223 | 50.00% |
+| 1999 | **0.0544** | **98.50%** |
+
+![Frontière Noisy](graph/phase4_spirale_Adversarial.png)
+
+> [!NOTE]
+> **Observation :** Malgré le chevauchement des points, le réseau profond parvient à extraire une tendance, bien que la frontière soit plus "tourmentée" pour s'adapter au bruit.
+````
+
+---
+## ⚙️ Paramètres Techniques Avancés
+- **Initialisation :** Méthode de **He** ($std = \sqrt{2/n}$) pour stabiliser l'apprentissage avec ReLU.
+---
+
+# 🔟 Rapport d'Expérimentation : Phase 5 - Transition vers Keras & MNIST
+
+> [!IMPORTANT]
+> **Objectif :** Industrialiser l'approche "from scratch" en utilisant le framework **Keras/TensorFlow**. Cette phase permet de comparer nos implémentations manuelles avec des outils optimisés pour des jeux de données réels comme **MNIST** (chiffres manuscrits).
+
+---
+
+## 🏗️ Architecture du Réseau (784-128-64-10)
+Le passage à MNIST nécessite une entrée de 784 pixels (28x28) et une sortie multi-classe (10 chiffres).
+
+```mermaid
+graph LR
+    subgraph Input[Entrée]
+    IN((784 Pixels))
+    end
+    
+    subgraph Hidden[Couches Profondes]
+    D1((128 Neurones<br/>ReLU))
+    D2((64 Neurones<br/>ReLU))
+    end
+    
+    subgraph Output[Sortie]
+    Soft((10 Classes<br/>Softmax))
+    end
+    
+    IN --> D1 --> D2 --> Soft
+    
+    style Hidden fill:#fdf,stroke:#333
+    style Output fill:#bfb,stroke:#333
+```
+
+---
+
+## ⚡ Performance et Scénarios d'Entraînement
+
+````carousel
+### 🟢 Scénario 1 : Standard (Optimisé)
+*Batch Size: 64 | Optimiseur: Adam | Époques: 5*
+
+| Métrique | Valeur |
+| :--- | :--- |
+| **Accuracy Test** | **97.72%** |
+| Temps total | ~18s |
+| Stabilité | Très haute |
+
+![Courbes MNIST Normal](graph/phase5_mnist_curves.png)
+
+> [!TIP]
+> **Efficacité :** L'utilisation de mini-batches (64) permet une convergence rapide et stable grâce à la parallélisation du CPU/GPU.
+
+<!-- slide -->
+
+### 🔴 Scénario 2 : Adversarial (Batch Size = 1)
+*Mise à jour après chaque image unique (Stochastic Gradient Descent)*
+
+| Métrique | Valeur |
+| :--- | :--- |
+| **Accuracy Test** | **96.65%** |
+| Temps total | **596.1s (x30 plus lent)** |
+| Bruit | Élevé sur la loss |
+
+![Courbes MNIST Adversarial](graph/phase5_mnist_curves_adversarial.png)
+
+> [!CAUTION]
+> **Inconvénient :** Un `batch_size=1` empêche toute optimisation vectorielle. Le temps de calcul explose et la descente de gradient devient très "erratique" (bruitée), rendant l'apprentissage inefficace sur de gros volumes.
+
+<!-- slide -->
+
+### ⚪ Scénario 3 : Cas Limite (Époques = 0)
+*Évaluation d'un modèle non entraîné.*
+
+| Métrique | Valeur |
+| :--- | :--- |
+| Accuracy Test | **~9.8%** |
+| État | Aléatoire (1 chance sur 10) |
+
+**Conclusion :** Sans phase d'apprentissage, le réseau ne peut que "deviner" au hasard parmi les 10 classes possibles.
+````
+
+---
+
+## 🧪 Concepts de Deep Learning Appliqués
+- **Optimiseur ADAM :** Combine les avantages d'AdaGrad et RMSProp pour adapter le taux d'apprentissage de chaque paramètre.
+- **Softmax :** Transforme les scores de sortie en probabilités (la somme est égale à 1.0).
+- **Sparse Categorical Cross-Entropy :** Fonction de perte idéale pour la classification multi-classe sans encodage one-hot.
+
+---
+*Généré par Antigravity - Expert IA*
